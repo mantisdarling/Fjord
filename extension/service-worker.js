@@ -1,7 +1,10 @@
-const DEFAULTS = { trackingEnabled: true, excludedDomains: [], eventQueue: [], lastSyncAt: null, apiBaseUrl: '', accessToken: '' };
+const DEFAULTS = { trackingEnabled: true, excludedDomains: [], eventQueue: [], lastSyncAt: null, apiBaseUrl: '' };
 const SENSITIVE_DOMAIN_PARTS = ['bank', 'wallet', 'payment', 'paypal', 'stripe', 'creditcard'];
 
-async function readState() { return chrome.storage.local.get(DEFAULTS); }
+async function readState() {
+  const [local, session] = await Promise.all([chrome.storage.local.get(DEFAULTS), chrome.storage.session.get({ accessToken: '' })]);
+  return { ...local, ...session };
+}
 function isSensitive(domain) { return SENSITIVE_DOMAIN_PARTS.some((part) => domain.toLowerCase().includes(part)); }
 function shouldSkip(url, excludedDomains) {
   try {
@@ -18,8 +21,7 @@ async function enqueue(event) {
   if (!state.trackingEnabled || shouldSkip(event.url || `https://${event.domain}`, state.excludedDomains)) return;
   const parsed = event.url ? new URL(event.url) : null;
   const normalized = { eventId: crypto.randomUUID(), ts: new Date().toISOString(), eventType: event.eventType || event.type, domain: event.domain || parsed?.hostname || 'unknown', title: event.title || '', category: 'uncategorized', device: 'chrome-desktop', ...(event.url ? { urlHash: await hashUrl(event.url) } : {}) };
-  const next = [...state.eventQueue, normalized].slice(-5000);
-  await chrome.storage.local.set({ eventQueue: next });
+  await chrome.storage.local.set({ eventQueue: [...state.eventQueue, normalized].slice(-5000) });
 }
 
 chrome.runtime.onInstalled.addListener(() => chrome.storage.local.set(DEFAULTS));

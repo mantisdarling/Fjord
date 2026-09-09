@@ -6,19 +6,15 @@ function isEligible() {
 }
 
 if (isEligible()) {
-  const meta = document.querySelector('meta[name="description"]')?.content?.slice(0, 240) || '';
   chrome.runtime.sendMessage({
     type: 'page_context',
     payload: {
-      title: document.title.slice(0, 240),
-      description: meta,
-      domain: location.hostname,
-      url: location.href.split('#')[0]
+      title: document.title.slice(0, 240)
     }
   });
 
   document.addEventListener('focusin', (event) => {
     if (event.target instanceof HTMLInputElement && sensitiveInputTypes.has(event.target.type)) return;
-    chrome.runtime.sendMessage({ type: 'form_interaction', payload: { domain: location.hostname } });
+    chrome.runtime.sendMessage({ type: 'form_interaction', payload: {} });
   }, { passive: true });
 }

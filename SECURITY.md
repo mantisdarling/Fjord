@@ -12,6 +12,8 @@ The extension must not capture keystrokes, passwords, payment values, screenshot
 
 The API uses strict Zod schemas, a bounded JSON body, Helmet security headers, an explicit CORS origin, authenticated bearer tokens with HMAC verification, per-user repository queries, user-scoped idempotency keys, parameterized PostgreSQL queries, a bounded connection pool, and a per-IP request rate limit. The event store has user and timestamp indexes and rejects unbounded event batches.
 
+The extension stores its event queue locally but keeps the access token in Chrome session storage rather than persistent local storage. The static marketing/dashboard page does not read tokens from browser storage. Proxy trust is disabled by default and must be explicitly enabled only when the deployment is behind a trusted proxy.
+
 ## Required production controls
 
 Before onboarding users, the backend must enforce authenticated ingestion, per-user authorization on every read and write, idempotency keys for event batches, request-size limits, rate limits, encrypted transport, encryption at rest, structured audit events without raw URLs, short-lived access tokens, secure cookies, CSRF protection where cookie-authenticated mutations are used, and generic error responses that never expose stack traces.

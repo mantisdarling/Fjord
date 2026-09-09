@@ -10,7 +10,7 @@ export function createApp({ repository, authSecret = process.env.JWT_SECRET, cor
   if (!authSecret) throw new Error('JWT_SECRET is required');
   const app = express();
   app.disable('x-powered-by');
-  app.set('trust proxy', 1);
+  app.set('trust proxy', process.env.TRUST_PROXY === 'true' ? 1 : false);
   app.use(helmet({ contentSecurityPolicy: false }));
   app.use(cors({ origin: corsOrigin, credentials: true, methods: ['GET', 'POST', 'DELETE'] }));
   app.use(express.json({ limit: '256kb', strict: true }));
