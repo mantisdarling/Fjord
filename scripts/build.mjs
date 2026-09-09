@@ -1,0 +1,14 @@
+import { cp, mkdir, rm, writeFile } from 'node:fs/promises';
+import { join } from 'node:path';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
+const exec = promisify(execFile);
+const root = new URL('..', import.meta.url).pathname;
+const dist = join(root, 'dist');
+await rm(dist, { recursive: true, force: true });
+await mkdir(join(dist, 'web'), { recursive: true });
+await cp(join(root, 'web'), join(dist, 'web'), { recursive: true });
+await cp(join(root, 'extension'), join(dist, 'extension'), { recursive: true });
+await exec('zip', ['-qr', join(dist, 'fjord-extension.zip'), '.'], { cwd: join(dist, 'extension') });
+await writeFile(join(dist, 'BUILD.txt'), `Fjord build generated ${new Date().toISOString()}\n`);
+console.log('Built dist/web and dist/fjord-extension.zip');

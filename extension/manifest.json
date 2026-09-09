@@ -1,0 +1,18 @@
+{
+  "manifest_version": 3,
+  "name": "Fjord — private work intelligence",
+  "version": "0.1.0",
+  "description": "A private-by-default browser activity mirror for a clearer day.",
+  "action": { "default_title": "Fjord", "default_popup": "popup.html" },
+  "background": { "service_worker": "service-worker.js", "type": "module" },
+  "permissions": ["storage", "tabs", "idle", "webNavigation", "alarms"],
+  "host_permissions": ["<all_urls>"],
+  "options_page": "options.html",
+  "content_scripts": [{
+    "matches": ["<all_urls>"],
+    "js": ["content.js"],
+    "run_at": "document_idle",
+    "exclude_matches": ["*://localhost/*", "*://127.0.0.1/*"]
+  }],
+  "content_security_policy": { "extension_pages": "script-src 'self'; object-src 'self'" }
+}
