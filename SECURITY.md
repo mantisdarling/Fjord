@@ -8,6 +8,10 @@ Fjord is designed as a privacy-first personal activity product. This repository 
 
 The extension must not capture keystrokes, passwords, payment values, screenshots, screen recordings, Incognito activity, browser-internal pages, or sensitive-domain page content. The local event queue is bounded to prevent unbounded browser storage growth. Users must be able to pause, exclude domains, export data, and delete data.
 
+## Implemented backend controls
+
+The API uses strict Zod schemas, a bounded JSON body, Helmet security headers, an explicit CORS origin, authenticated bearer tokens with HMAC verification, per-user repository queries, user-scoped idempotency keys, parameterized PostgreSQL queries, a bounded connection pool, and a per-IP request rate limit. The event store has user and timestamp indexes and rejects unbounded event batches.
+
 ## Required production controls
 
 Before onboarding users, the backend must enforce authenticated ingestion, per-user authorization on every read and write, idempotency keys for event batches, request-size limits, rate limits, encrypted transport, encryption at rest, structured audit events without raw URLs, short-lived access tokens, secure cookies, CSRF protection where cookie-authenticated mutations are used, and generic error responses that never expose stack traces.
