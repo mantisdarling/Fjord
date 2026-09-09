@@ -38,3 +38,11 @@ test('isolates reads by authenticated user', async () => {
   assert.equal(own.body.events.length, 1);
   assert.equal(other.body.events.length, 0);
 });
+
+test('supports only past-date retention deletion', async () => {
+  const rejected = await request(app).delete('/api/v1/events?before=2999-01-01T00:00:00Z').set('Authorization', `Bearer ${tokenA}`);
+  const deleted = await request(app).delete('/api/v1/events?before=2020-01-01T00:00:00Z').set('Authorization', `Bearer ${tokenA}`);
+  assert.equal(rejected.status, 400);
+  assert.equal(deleted.status, 200);
+  assert.equal(deleted.body.ok, true);
+});

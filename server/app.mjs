@@ -12,7 +12,7 @@ export function createApp({ repository, authSecret = process.env.JWT_SECRET, cor
   app.disable('x-powered-by');
   app.set('trust proxy', 1);
   app.use(helmet({ contentSecurityPolicy: false }));
-  app.use(cors({ origin: corsOrigin, credentials: true, methods: ['GET', 'POST'] }));
+  app.use(cors({ origin: corsOrigin, credentials: true, methods: ['GET', 'POST', 'DELETE'] }));
   app.use(express.json({ limit: '256kb', strict: true }));
   app.get('/api/health', (_req, res) => res.json({ ok: true, service: 'fjord-api' }));
   app.use('/api/v1', rateLimit({ windowMs: 60_000, limit: 120, standardHeaders: 'draft-8', legacyHeaders: false }));
@@ -37,6 +37,12 @@ export function createApp({ repository, authSecret = process.env.JWT_SECRET, cor
     const parsed = eventsQuerySchema.pick({ from: true, to: true }).safeParse(req.query);
     if (!parsed.success) return res.status(400).json({ error: 'invalid_request' });
     try { return res.json(await repository.summary(req.user.userId, parsed.data.from, parsed.data.to)); } catch (error) { return next(error); }
+  });
+
+  app.delete('/api/v1/events', async (req, res, next) => {
+    const before = typeof req.query.before === 'string' ? req.query.before : '';
+    if (!before || Number.isNaN(Date.parse(before)) || new Date(before) >= new Date()) return res.status(400).json({ error: 'before must be a past ISO date' });
+    try { return res.json({ ok: true, ...(await repository.deleteBefore(req.user.userId, new Date(before).toISOString())) }); } catch (error) { return next(error); }
   });
 
   app.use((error, _req, res, _next) => {

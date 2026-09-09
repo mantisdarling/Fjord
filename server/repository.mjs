@@ -15,6 +15,11 @@ export class MemoryRepository {
     const byCategory = Object.fromEntries(events.reduce((map, event) => map.set(event.category, (map.get(event.category) || 0) + (event.durationSec || 0)), new Map()));
     return { eventCount: events.length, activeSeconds: events.reduce((sum, event) => sum + (event.durationSec || 0), 0), byCategory };
   }
+  async deleteBefore(userId, before) {
+    const original = this.events.length;
+    this.events = this.events.filter((event) => event.userId !== userId || event.ts >= before);
+    return { deleted: original - this.events.length };
+  }
 }
 
 export class PgRepository {
@@ -40,5 +45,9 @@ export class PgRepository {
   async summary(userId, from, to) {
     const result = await this.pool.query('SELECT COUNT(*)::int AS "eventCount", COALESCE(SUM(duration_sec),0)::int AS "activeSeconds", category, COALESCE(SUM(duration_sec),0)::int AS seconds FROM activity_events WHERE user_id = $1 AND ($2::timestamptz IS NULL OR ts >= $2) AND ($3::timestamptz IS NULL OR ts <= $3) GROUP BY category', [userId, from || null, to || null]);
     return { eventCount: result.rows.reduce((sum, row) => sum + row.eventCount, 0), activeSeconds: result.rows.reduce((sum, row) => sum + row.seconds, 0), byCategory: Object.fromEntries(result.rows.map((row) => [row.category, row.seconds])) };
+  }
+  async deleteBefore(userId, before) {
+    const result = await this.pool.query('DELETE FROM activity_events WHERE user_id = $1 AND ts < $2', [userId, before]);
+    return { deleted: result.rowCount };
   }
 }

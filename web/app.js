@@ -22,4 +22,19 @@
   } else {
     items.forEach((item) => item.classList.add('is-visible'));
   }
+
+  const configuredApi = window.localStorage.getItem('fjordApiUrl');
+  const configuredToken = window.localStorage.getItem('fjordAccessToken');
+  const focusNumber = document.querySelector('.focus-number');
+  if (configuredApi && configuredToken && focusNumber) {
+    fetch(`${configuredApi.replace(/\/$/, '')}/api/v1/summary`, { headers: { Authorization: `Bearer ${configuredToken}` } })
+      .then((response) => response.ok ? response.json() : null)
+      .then((summary) => {
+        if (!summary) return;
+        const hours = Math.floor(summary.activeSeconds / 3600);
+        const minutes = Math.floor((summary.activeSeconds % 3600) / 60);
+        focusNumber.innerHTML = `${String(hours).padStart(2, '0')}<span>h</span>${String(minutes).padStart(2, '0')}<span>m</span>`;
+      })
+      .catch(() => {});
+  }
 })();

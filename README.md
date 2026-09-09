@@ -12,6 +12,7 @@ Fjord is a private work-intelligence product: an award-style web experience pair
 - Repository checks, tests, build packaging, and GitHub Actions quality gates.
 - Security model and production-readiness requirements in `SECURITY.md`.
 - Authenticated Express API in `server/` with strict schemas, per-user isolation, idempotent batch ingestion, rate limits, and PostgreSQL migrations.
+- Authenticated extension batching, local API configuration, Docker deployment files, and user-scoped retention deletion.
 
 ## Local checks
 
@@ -31,6 +32,8 @@ Open `web/index.html` directly for a quick static preview, or serve the reposito
 The next implementation step is an authenticated HTTPS ingestion service with strict schema validation, per-user authorization, idempotent batch writes, retention controls, and dashboard data queries. Do not connect the extension to a production endpoint until those controls are implemented and tested.
 
 The ingestion service is now implemented locally. Copy `.env.example` to a secret-managed environment, provide a PostgreSQL connection string and a long random `JWT_SECRET`, then run `npm start`. The service expects an upstream authentication layer to mint Fjord-signed bearer tokens; it intentionally does not include an unsafe public sign-up shortcut.
+
+For a local production-like stack, set `POSTGRES_PASSWORD` and `JWT_SECRET`, then run `docker compose up --build`. The API listens on `http://localhost:8787`. Configure the extension’s API URL and short-lived access token from its privacy settings page. The API supports `DELETE /api/v1/events?before=<past ISO date>` for user-scoped retention cleanup.
 
 ## Ownership
 
